@@ -1,35 +1,42 @@
 package axo.core;
 
-import java.util.Collection;
 import java.util.Comparator;
 
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
 
-public class Producer<T> implements Publisher<T> {
+public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
 
-	public static <T> Producer<T> from (final T ... ts) {
-		return null;
+	public abstract StreamContext getContext ();
+	
+	@Override
+	@SafeVarargs
+	public final <E> Producer<E> from (final E ... ts) {
+		return getContext ().from (ts);
 	}
 	
-	public static <T> Producer<T> from (final Collection<T> ts) {
-		return null;
+	@Override
+	public final <E> Producer<E> from (final Iterable<E> ts) {
+		return getContext ().from (ts);
 	}
 	
-	public static <T> Producer<T> from (final Publisher<T> ts) {
-		return null;
+	@Override
+	public final <E> Producer<E> from (final Publisher<E> ts) {
+		return getContext ().from (ts);
 	}
 	
-	public static <T> Producer<T> from (final Producer<T> ts) {
-		return null;
+	@Override
+	public final <E> Producer<E> from (final Producer<E> ts) {
+		return getContext ().from (ts);
 	}
 	
-	public static Producer<Integer> range (final int min, final int max) {
-		return null;
+	@Override
+	public final Producer<Integer> range (final int min, final int max) {
+		return getContext ().range (min, max);
 	}
 	
-	public static Producer<Long> range (final long min, final long max) {
-		return null;
+	@Override
+	public final Producer<Long> range (final long min, final long max) {
+		return getContext ().range (min, max);
 	}
 	
 	public <R> Producer<R> map (final Function<? super T, ? extends R> mapper) {
@@ -94,9 +101,5 @@ public class Producer<T> implements Publisher<T> {
 
 	public <B, R> Producer<R> zip (final Producer<B> b, final Function2<? super T, ? super B, ? extends R> zipper) {
 		return null;
-	}
-	
-	public void subscribe (final Subscriber<? super T> subscriber) {
-		// TODO Auto-generated method stub
 	}
 }
