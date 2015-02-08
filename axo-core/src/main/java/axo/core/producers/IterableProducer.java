@@ -4,7 +4,7 @@ import java.util.Iterator;
 
 import org.reactivestreams.Subscriber;
 
-import axo.core.SubscriptionFactory.ImmediateSubscription;
+import axo.core.StreamExecutorFactory.ImmediateExecutor;
 import axo.core.StreamContext;
 
 public class IterableProducer<T> extends ContextProducer<T> {
@@ -27,9 +27,9 @@ public class IterableProducer<T> extends ContextProducer<T> {
 		final Iterator<T> iterator = iterable.iterator ();
 		
 		// Create an executor:
-		final ImmediateSubscription executor = getContext ()
+		final ImmediateExecutor executor = getContext ()
 			.getSubscriptionFactory ()
-			.createImmediateSubscription (subscriber, (innerSubscriber, count) -> {
+			.createImmediateExecutor (subscriber, (innerSubscriber, count) -> {
 				for (long l = 0; l < count; ++ l) {
 					if (!iterator.hasNext ()) {
 						return false;

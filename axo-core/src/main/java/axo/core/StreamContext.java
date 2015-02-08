@@ -11,9 +11,9 @@ import axo.core.producers.PublisherWrapper;
 
 public class StreamContext implements ProducerFactory {
 
-	private final SubscriptionFactory subscriptionFactory;
+	private final StreamExecutorFactory subscriptionFactory;
 	
-	public StreamContext (final SubscriptionFactory subscriptionFactory) {
+	public StreamContext (final StreamExecutorFactory subscriptionFactory) {
 		if (subscriptionFactory == null) {
 			throw new NullPointerException ("subscriptionFactory cannot be null");
 		}
@@ -21,7 +21,7 @@ public class StreamContext implements ProducerFactory {
 		this.subscriptionFactory = subscriptionFactory;
 	}
 	
-	public SubscriptionFactory getSubscriptionFactory () {
+	public StreamExecutorFactory getSubscriptionFactory () {
 		return subscriptionFactory;
 	}
 	

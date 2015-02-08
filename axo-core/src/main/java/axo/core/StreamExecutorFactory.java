@@ -3,7 +3,7 @@ package axo.core;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-public interface SubscriptionFactory {
+public interface StreamExecutorFactory {
 
 	/**
 	 * Creates a new immediate subscription. An immediate subscription is used when the
@@ -21,13 +21,13 @@ public interface SubscriptionFactory {
 	 * @param producerFunction	The function that produces the elements.
 	 * @return					An immediate subscription.
 	 */
-	<T> ImmediateSubscription createImmediateSubscription (Subscriber<? super T> subscriber, Function2<Subscriber<? super T>, Long, Boolean> producerFunction);
+	<T> ImmediateExecutor createImmediateExecutor (Subscriber<? super T> subscriber, Function2<Subscriber<? super T>, Long, Boolean> producerFunction);
 	
 	/**
 	 * Executor for producers that have can produce elements immediately.
 	 * Used for ranges, java collections, etc. Producers where values
 	 * are either calculated or buffered
 	 */
-	public interface ImmediateSubscription extends Subscription {
+	public interface ImmediateExecutor extends Subscription {
 	}
 }
