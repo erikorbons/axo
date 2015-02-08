@@ -60,7 +60,7 @@ public class StreamContext implements ProducerFactory {
 					
 					@Override
 					public boolean hasNext () {
-						return i <= max;
+						return i < max;
 					}
 
 					@Override
@@ -86,7 +86,7 @@ public class StreamContext implements ProducerFactory {
 					
 					@Override
 					public boolean hasNext () {
-						return i <= max;
+						return i < max;
 					}
 
 					@Override

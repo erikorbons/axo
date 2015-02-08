@@ -58,6 +58,7 @@ public class ExecutorServiceExecutor implements StreamExecutorFactory, StreamExe
 					try {
 						if (!producerFunction.apply (subscriber, batchCount)) {
 							terminated.set (true);
+							subscriber.onComplete ();
 							break;
 						}
 					} catch (Throwable e) {
