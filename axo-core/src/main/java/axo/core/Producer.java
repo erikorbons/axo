@@ -4,6 +4,8 @@ import java.util.Comparator;
 
 import org.reactivestreams.Publisher;
 
+import axo.core.producers.MappedProducer;
+
 public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
 
 	public abstract StreamContext getContext ();
@@ -40,7 +42,7 @@ public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
 	}
 	
 	public <R> Producer<R> map (final Function<? super T, ? extends R> mapper) {
-		return null;
+		return new MappedProducer<> (this, mapper);
 	}
 	
 	public <R> Producer<R> flatMap (final Function<? super T, ? extends Producer<? extends R>> mapper) {
