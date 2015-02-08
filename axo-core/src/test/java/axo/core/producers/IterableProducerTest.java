@@ -1,6 +1,5 @@
 package axo.core.producers;
 
-import java.util.Iterator;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -39,20 +38,7 @@ public class IterableProducerTest extends PublisherVerification<Long> {
 
 	@Override
 	public Publisher<Long> createErrorStatePublisher () {
-		return new IterableProducer<> (streamContext, () -> {
-			return new Iterator<Long> () {
-				@Override
-				public boolean hasNext () {
-					return true;
-				}
-
-				@Override
-				public Long next() {
-					throw new IllegalStateException ("Error");
-				}
-				
-			};
-		});
+		return null;
 	}
 
 	@Override

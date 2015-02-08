@@ -39,6 +39,12 @@ public class ExecutorServiceExecutor implements StreamExecutorFactory, StreamExe
 			public void apply (final StreamExecutor executor) {
 				long n = 0;		// Number of items produced by this action:
 	
+				// Exit immediately if the subscription is terminated:
+				if (terminated.get ()) {
+					producing.set (false);
+					return;
+				}
+				
 				// Produce items in a loop:
 				while (true) {
 					// Create a batch of items to fetch:
@@ -89,9 +95,27 @@ public class ExecutorServiceExecutor implements StreamExecutorFactory, StreamExe
 		return new ImmediateExecutor () {
 			@Override
 			public void request (final long n) {
+				if (terminated.get ()) {
+					return;
+				}
+				
+				if (n <= 0) {
+					terminated.set (true);
+					subscriber.onError (new IllegalArgumentException ("Request count must be > 0 (reactive streams 3.9)"));
+					return;
+				}
+				
 				// Add to the total count of items that can be fetched from this
 				// subscription:
-				count.addAndGet (n);
+				long current;
+				do {
+					current = count.get ();
+					if (current + n < 1) {
+						terminated.set (true);
+						subscriber.onError (new IllegalStateException ("Pending count exceeded Long.MAX_VALUE (reactive streams 3.17)"));
+						return;
+					}
+				} while (!count.compareAndSet (current, current + n));
 				
 				// Start producing if the produceItemsAction isn't scheduled or running:
 				if (producing.compareAndSet (false, true)) {
