@@ -1,5 +1,6 @@
 package axo.core.executors;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -8,6 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 
 import axo.core.Action;
+import axo.core.Action0;
 import axo.core.Function2;
 import axo.core.StreamExecutor;
 import axo.core.StreamExecutorFactory;
@@ -145,5 +147,51 @@ public class ExecutorServiceExecutor implements StreamExecutorFactory, StreamExe
 		final StreamExecutor self = this;
 		
 		executorService.execute (() -> action.apply (self));
+	}
+	
+	@Override
+	public SerialScheduler createSerialScheduler () {
+		final ExecutorServiceExecutor self = this;
+		
+		return new SerialScheduler() {
+			private final AtomicBoolean working = new AtomicBoolean (false);
+			private final ConcurrentLinkedQueue<Action0> actions = new ConcurrentLinkedQueue<> ();
+			
+			@Override
+			public void scheduleAction (final Action0 action) {
+				actions.add (action);
+				doWork ();
+			}
+			
+			private void doWork () {
+				// Don't schedule work when the queue is empty:
+				if (actions.isEmpty ()) {
+					return;
+				}
+				
+				// Start working:
+				if (!working.compareAndSet (false, true)) {
+					// Another thread already started working:
+					return;
+				}
+
+				// Perform the first action in the queue:
+				self.scheduleAction ((executor) -> {
+					final Action0 action = actions.poll ();
+					if (action != null) {
+						action.apply ();
+					}
+					
+					working.set (false);
+					
+					doWork ();
+				});
+			}
+		};
+	}
+
+	@Override
+	public StreamExecutor createStreamExecutor () {
+		return this;
 	}
 }

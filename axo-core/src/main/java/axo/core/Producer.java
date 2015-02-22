@@ -1,9 +1,12 @@
 package axo.core;
 
 import java.util.Comparator;
+import java.util.List;
 
 import org.reactivestreams.Publisher;
 
+import axo.core.producers.BufferProducer;
+import axo.core.producers.FlattenProducer;
 import axo.core.producers.MappedProducer;
 
 public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
@@ -46,7 +49,11 @@ public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
 	}
 	
 	public <R> Producer<R> flatMap (final Function<? super T, ? extends Producer<? extends R>> mapper) {
-		return null;
+		return flatten (map (mapper));
+	}
+	
+	public static <R> Producer<R> flatten (final Producer<Producer<? extends R>> source) {
+		return new FlattenProducer<> (source, 1);
 	}
 	
 	public Producer<T> head () {
@@ -103,5 +110,9 @@ public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
 
 	public <B, R> Producer<R> zip (final Producer<B> b, final Function2<? super T, ? super B, ? extends R> zipper) {
 		return null;
+	}
+	
+	public Producer<List<T>> buffer (final int bufferSize) {
+		return new BufferProducer<T> (this, bufferSize);
 	}
 }

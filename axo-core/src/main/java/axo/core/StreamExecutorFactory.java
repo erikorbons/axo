@@ -23,6 +23,8 @@ public interface StreamExecutorFactory {
 	 */
 	<T> ImmediateExecutor createImmediateExecutor (Subscriber<? super T> subscriber, Function2<Subscriber<? super T>, Long, Boolean> producerFunction);
 	
+	StreamExecutor createStreamExecutor ();
+	
 	/**
 	 * Executor for producers that have can produce elements immediately.
 	 * Used for ranges, java collections, etc. Producers where values
