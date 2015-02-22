@@ -158,6 +158,9 @@ public abstract class AbstractProcessor<T, R> implements Processor<T, R> {
 		if (targetRequested > 0) {
 			try {
 				final long n = process (sourceElements, sourceCompleted);
+				if (n == 0 && !sourceElements.isEmpty ()) {
+					throw new IllegalStateException ("Process didn't process all input elements and didn't request more new elements (" + sourceElements.size () + " elements remain)");
+				}
 				if (n > sourceRequested && !sourceCompleted) {
 					sourceSubscription.request (n - sourceRequested);
 					sourceRequested = n;

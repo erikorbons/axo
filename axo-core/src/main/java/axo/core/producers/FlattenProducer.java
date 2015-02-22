@@ -98,7 +98,7 @@ public class FlattenProducer<T> extends Producer<T> {
 				return 0;
 			} 
 			
-			return sourceExhausted || !input.isEmpty () ? 0 : 1;
+			return subscription != null || sourceExhausted || !input.isEmpty () ? 0 : 1;
 		}
 	}
 }
