@@ -1,29 +1,26 @@
 package axo.core.producers;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Queue;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import axo.core.Function;
+import axo.core.AbstractProcessor;
 import axo.core.Producer;
 import axo.core.StreamContext;
+import axo.core.StreamExecutor;
 
 public class FlattenProducer<T> extends Producer<T> {
 	
 	private final Producer<Producer<? extends T>> source;
+	private final long requestCount;
 	
-	private final int requestCount;
-	
-	public FlattenProducer (final Producer<Producer<? extends T>> source, final int requestCount) {
+	public FlattenProducer (final Producer<Producer<? extends T>> source, final long requestCount) {
 		if (source == null) {
 			throw new NullPointerException ("source cannot be null");
 		}
-		if (requestCount < 0) {
-			throw new IllegalArgumentException ("requestCount should be >= 1");
+		if (requestCount <= 0) {
+			throw new IllegalArgumentException ("requestCount must be >= 1");
 		}
 		
 		this.source = source;
@@ -41,65 +38,67 @@ public class FlattenProducer<T> extends Producer<T> {
 			throw new NullPointerException ("subscriber cannot be null");
 		}
 
-		source.subscribe (new Subscriber<Producer<? extends T>> () {
-			private Subscription subscription = null;
-			private final List<Producer<? extends T>> producers = new ArrayList<> (requestCount);
-			private final List<T> items = new ArrayList<> (requestCount);
-			
-			private AtomicBoolean terminated = new AtomicBoolean (false);
-			private AtomicLong requested = new AtomicLong (0);
-			
-			@Override
-			public void onSubscribe (final Subscription s) {
-				this.subscription = s;
+		final FlattenProcessor processor = new FlattenProcessor (getContext ().getSubscriptionFactory ().createStreamExecutor ());
+		
+		source.subscribe (processor);
+		processor.subscribe (subscriber);
+	}
+	
+	private class FlattenProcessor extends AbstractProcessor<Producer<? extends T>, T> {
+		// TODO: Cancel the current subscription if the processor is cancelled.
+		private Subscription subscription = null;
+		private long requested = 0;
+		
+		public FlattenProcessor (final StreamExecutor executor) {
+			super(executor);
+		}
 
-				subscriber.onSubscribe (new Subscription () {
-					@Override
-					public void request (final long n) {
-						while (true) {
-							final long current = requested.get () + n;
-							if (requested.compareAndSet (current, current + n)) {
-								break;
-							}
-						} 
-						
-						produce ();
-					}
-					
-					@Override
-					public void cancel () {
-						subscription.cancel ();
-						terminated.set (true);
-					}
-				});
-			}
-			
-			private void produce () {
+		@Override
+		public long process (final Queue<Producer<? extends T>> input, final boolean sourceExhausted) {
+			// Subscribe to a new producer:
+			if (subscription == null && !input.isEmpty ()) {
+				input
+					.poll ()
+					.subscribe (new Subscriber<T> () {
+						@Override
+						public void onComplete () {
+							schedule (() -> {
+								subscription = null;
+								requested = 0;
+							});
+						}
+
+						@Override
+						public void onError(final Throwable t) {
+							schedule (() -> { 
+								throw new RuntimeException (t);
+							});
+						}
+
+						@Override
+						public void onNext (final T element) {
+							schedule (() -> {
+								produce (element);
+								-- requested;
+								if (requested <= 0) {
+									requested = requestCount;
+									subscription.request (requestCount);
+								}
+							});
+						}
+
+						@Override
+						public void onSubscribe (final Subscription s) {
+							subscription = s;
+							subscription.request (requestCount);
+							requested = requestCount;
+						}
+					});
 				
-			}
-
-			@Override
-			public void onNext (final Producer<? extends T> t) {
-				try {
-					producers.add (t);
-				} catch (Throwable e) {
-					subscriber.onError (e);
-					subscription.cancel ();
-					terminated.set (true);
-				}
-			}
-
-			@Override
-			public void onError (final Throwable t) {
-				subscriber.onError (t);
-				terminated.set (false);
-			}
-
-			@Override
-			public void onComplete() {
-				// TODO Auto-generated method stub
-				
-			}
-		});
+				return 0;
+			} 
+			
+			return sourceExhausted || !input.isEmpty () ? 0 : 1;
+		}
 	}
 }

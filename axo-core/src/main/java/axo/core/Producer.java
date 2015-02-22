@@ -57,11 +57,11 @@ public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
 	}
 	
 	public Producer<T> head () {
-		return null;
+		return take (1);
 	}
 	
 	public Producer<T> tail () {
-		return null;
+		return skip (1);
 	}
 	
 	public Producer<T> skip (final long n) {
