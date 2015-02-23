@@ -8,6 +8,7 @@ import org.reactivestreams.Publisher;
 import axo.core.producers.BufferProducer;
 import axo.core.producers.FlattenProducer;
 import axo.core.producers.MappedProducer;
+import axo.core.producers.TakeProducer;
 
 public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
 
@@ -69,7 +70,7 @@ public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
 	}
 	
 	public Producer<T> take (final long n) {
-		return null;
+		return new TakeProducer<> (this, n);
 	}
 	
 	public Producer<Boolean> allMatch (final Function<? super T, Boolean> predicate) {
