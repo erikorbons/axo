@@ -15,6 +15,48 @@ public abstract class AbstractProcessor<T, R> implements Processor<T, R> {
 	
 	private Subscription sourceSubscription;
 	private Subscriber<? super R> targetSubscriber;
+	
+	public static enum ProcessorState {
+		WORKING,
+		NEEDS_INPUT,
+		FINISHED
+	}
+	
+	public static class ProcessResult {
+		private final long requestCount;
+		private final ProcessorState state;
+
+		public ProcessResult (final long n) {
+			this (ProcessorState.NEEDS_INPUT, n);
+		}
+		
+		public ProcessResult (final ProcessorState state) {
+			this (state, 0);
+		}
+		
+		public ProcessResult (final ProcessorState state, final long requestCount) {
+			if (state == null) {
+				throw new NullPointerException ("state cannot be null");
+			}
+			if (requestCount < 0) {
+				throw new IllegalArgumentException ("requestCount must be >= 0"); 
+			}
+			if (ProcessorState.NEEDS_INPUT.equals (state) && requestCount == 0) {
+				throw new IllegalArgumentException ("Should request at least one element if state is NEEDS_INPUT");
+			}
+			
+			this.state = state;
+			this.requestCount = requestCount;
+		}
+		
+		public long getRequestCount () {
+			return requestCount;
+		}
+		
+		public ProcessorState getState () {
+			return state;
+		}
+	}
 
 	public AbstractProcessor (final StreamExecutor executor) {
 		if (executor == null) {
@@ -59,6 +101,12 @@ public abstract class AbstractProcessor<T, R> implements Processor<T, R> {
 	 * List containing elements that are ready to be sent to the target.
 	 */
 	private Queue<R> targetElements = new LinkedList<> ();
+	
+	/**
+	 * Set to true when the process method indicated the processor should process
+	 * no more elements.
+	 */
+	private boolean processorFinished = false;
 	
 	@Override
 	public void onComplete () {
@@ -157,15 +205,19 @@ public abstract class AbstractProcessor<T, R> implements Processor<T, R> {
 		}
 		
 		// Produce elements to the target:
-		if (targetRequested > 0) {
+		if (targetRequested > 0 && !processorFinished) {
 			try {
-				final long n = process (sourceElements, targetRequested - targetElements.size (), sourceCompleted);
-				if (n == 0 && !sourceElements.isEmpty ()) {
-					throw new IllegalStateException ("Process didn't process all input elements and didn't request more new elements (" + sourceElements.size () + " elements remain)");
-				}
+				final ProcessResult result = process (sourceElements, targetRequested - targetElements.size (), sourceCompleted);
+				final long n = result.getRequestCount ();
+				final ProcessorState state = result.getState ();
+				
 				if (n > sourceRequested && !sourceCompleted) {
 					sourceSubscription.request (n - sourceRequested);
 					sourceRequested = n;
+				}
+				
+				if (ProcessorState.FINISHED.equals (state)) {
+					processorFinished = true;
 				}
 			} catch (Throwable t) {
 				// Report the exception and disable this processor:
@@ -184,7 +236,7 @@ public abstract class AbstractProcessor<T, R> implements Processor<T, R> {
 		}
 		
 		// Stop the processor if the source has completed:
-		if (sourceCompleted && targetElements.isEmpty () && targetRequested > 0) {
+		if (processorFinished && targetElements.isEmpty () && targetRequested > 0) {
 			terminate ();
 			targetSubscriber.onComplete ();
 			targetSubscriber = null;
@@ -205,7 +257,7 @@ public abstract class AbstractProcessor<T, R> implements Processor<T, R> {
 	 * @return	The number of elements that must be fetched from the source
 	 * 			before more elements can be produced by this processor.
 	 */
-	public abstract long process (Queue<T> input, long requestCount, boolean sourceExhausted);
+	public abstract ProcessResult process (Queue<T> input, long requestCount, boolean sourceExhausted);
 
 	/**
 	 * Invoked when this processor terminates.

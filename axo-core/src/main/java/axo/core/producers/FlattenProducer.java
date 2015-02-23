@@ -54,15 +54,16 @@ public class FlattenProducer<T> extends Producer<T> {
 		}
 
 		@Override
-		public long process (final Queue<Producer<? extends T>> input, final long targetRequestCount, final boolean sourceExhausted) {
-			// Subscribe to a new producer:
+		public ProcessResult process (final Queue<Producer<? extends T>> input, final long targetRequestCount, final boolean sourceExhausted) {
 			if (subscription == null && !input.isEmpty ()) {
+				// Subscribe to a new producer:
 				input
-					.poll ()
+					.peek ()
 					.subscribe (new Subscriber<T> () {
 						@Override
 						public void onComplete () {
 							schedule (() -> {
+								input.poll ();
 								subscription = null;
 								requested = 0;
 							});
@@ -93,13 +94,22 @@ public class FlattenProducer<T> extends Producer<T> {
 						}
 					});
 				
-				return 0;
+				return new ProcessResult (ProcessorState.WORKING);
 			} else if (subscription != null && requested == 0 && targetRequestCount > 0) {
+				// Request more elements from an existing subscription:
 				requested = requestCount;
 				subscription.request (requestCount);
+				return new ProcessResult (ProcessorState.WORKING);
+			} else if (subscription != null) {
+				// Indicate the processor is still working if there is an active subscription:
+				return new ProcessResult (ProcessorState.WORKING);
+			} else if (sourceExhausted) {
+				return new ProcessResult (ProcessorState.FINISHED);
+			} else {
+				return new ProcessResult (1);
 			}
 			
-			return subscription != null || sourceExhausted || !input.isEmpty () ? 0 : 1;
+			//return subscription != null || sourceExhausted || !input.isEmpty () ? 0 : 1;
 		}
 		
 		@Override
