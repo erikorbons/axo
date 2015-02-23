@@ -7,6 +7,7 @@ import org.reactivestreams.Publisher;
 
 import axo.core.producers.BufferProducer;
 import axo.core.producers.CountProducer;
+import axo.core.producers.FilterProducer;
 import axo.core.producers.FlattenProducer;
 import axo.core.producers.MappedProducer;
 import axo.core.producers.ReduceProducer;
@@ -111,8 +112,8 @@ public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
 		return new CountProducer (this);
 	}
 	
-	public Producer<T> filter (final Function<T, Boolean> fn) {
-		return null;
+	public Producer<T> filter (final Function<? super T, Boolean> fn) {
+		return new FilterProducer<> (this, fn, 100);
 	}
 	
 	public <E> Producer<E> empty () {

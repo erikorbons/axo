@@ -18,6 +18,7 @@ public abstract class AbstractProcessor<T, R> implements Processor<T, R> {
 	
 	public static enum ProcessorState {
 		WORKING,
+		IDLE,
 		NEEDS_INPUT,
 		FINISHED
 	}
