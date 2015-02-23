@@ -45,7 +45,6 @@ public class FlattenProducer<T> extends Producer<T> {
 	}
 	
 	private class FlattenProcessor extends AbstractProcessor<Producer<? extends T>, T> {
-		// TODO: Cancel the current subscription if the processor is cancelled.
 		private Subscription subscription = null;
 		private long requested = 0;
 		
