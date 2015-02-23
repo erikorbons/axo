@@ -8,6 +8,7 @@ import org.reactivestreams.Publisher;
 import axo.core.producers.BufferProducer;
 import axo.core.producers.FlattenProducer;
 import axo.core.producers.MappedProducer;
+import axo.core.producers.SkipProducer;
 import axo.core.producers.TakeProducer;
 
 public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
@@ -66,7 +67,11 @@ public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
 	}
 	
 	public Producer<T> skip (final long n) {
-		return null;
+		if (n == 0) {
+			return this;
+		}
+		
+		return new SkipProducer<> (this, n);
 	}
 	
 	public Producer<T> take (final long n) {
