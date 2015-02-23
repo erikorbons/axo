@@ -114,16 +114,24 @@ public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
 		return null;
 	}
 	
-	static <T> Producer<T> empty () {
-		return null;
+	public <E> Producer<E> empty () {
+		return getContext ().<E>empty ();
 	}
 	
 	public Producer<T> max (final Comparator<? super T> comparator) {
-		return null;
+		if (comparator == null) {
+			throw new NullPointerException ("comparator cannot be null");
+		}
+		
+		return reduce ((a, b) -> comparator.compare (a, b) > 0 ? a : b);
 	}
 	
 	public Producer<T> min (final Comparator<? super T> comparator) {
-		return null;
+		if (comparator == null) {
+			throw new NullPointerException ("comparator cannot be null");
+		}
+		
+		return reduce ((a, b) -> comparator.compare (a, b) < 0 ? a : b);
 	}
 
 	public Producer<T> reduce (final Function2<? super T, ? super T, ? extends T> reducer) {

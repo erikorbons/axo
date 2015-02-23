@@ -5,6 +5,7 @@ import java.util.Iterator;
 
 import org.reactivestreams.Publisher;
 
+import axo.core.producers.EmptyProducer;
 import axo.core.producers.IterableProducer;
 import axo.core.producers.ProducerWrapper;
 import axo.core.producers.PublisherWrapper;
@@ -96,5 +97,10 @@ public class StreamContext implements ProducerFactory {
 				};
 			}
 		});
+	}
+	
+	@Override
+	public <E> Producer<E> empty () {
+		return new EmptyProducer<E> (this);
 	}
 }
