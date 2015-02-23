@@ -51,7 +51,7 @@ public class BufferProducer<T> extends Producer<List<T>> {
 		}
 
 		@Override
-		public long process (final Queue<T> input, final boolean sourceExhausted) {
+		public long process (final Queue<T> input, final long requestCount, final boolean sourceExhausted) {
 			while (input.size () >= bufferSize) {
 				final List<T> result = new ArrayList<T> (bufferSize);
 				
@@ -71,6 +71,10 @@ public class BufferProducer<T> extends Producer<List<T>> {
 			}
 			
 			return sourceExhausted ? 0 : bufferSize - input.size ();
+		}
+		
+		@Override
+		public void terminate () {
 		}
 	}
 }

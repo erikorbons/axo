@@ -54,7 +54,7 @@ public class FlattenProducer<T> extends Producer<T> {
 		}
 
 		@Override
-		public long process (final Queue<Producer<? extends T>> input, final boolean sourceExhausted) {
+		public long process (final Queue<Producer<? extends T>> input, final long targetRequestCount, final boolean sourceExhausted) {
 			// Subscribe to a new producer:
 			if (subscription == null && !input.isEmpty ()) {
 				input
@@ -71,6 +71,8 @@ public class FlattenProducer<T> extends Producer<T> {
 						@Override
 						public void onError(final Throwable t) {
 							schedule (() -> { 
+								subscription = null;
+								requested = 0;
 								throw new RuntimeException (t);
 							});
 						}
@@ -80,10 +82,6 @@ public class FlattenProducer<T> extends Producer<T> {
 							schedule (() -> {
 								produce (element);
 								-- requested;
-								if (requested <= 0) {
-									requested = requestCount;
-									subscription.request (requestCount);
-								}
 							});
 						}
 
@@ -96,9 +94,21 @@ public class FlattenProducer<T> extends Producer<T> {
 					});
 				
 				return 0;
-			} 
+			} else if (subscription != null && requested == 0 && targetRequestCount > 0) {
+				requested = requestCount;
+				subscription.request (requestCount);
+			}
 			
 			return subscription != null || sourceExhausted || !input.isEmpty () ? 0 : 1;
+		}
+		
+		@Override
+		public void terminate () {
+			if (subscription != null) {
+				subscription.cancel ();
+				subscription = null;
+				requested = 0;
+			}
 		}
 	}
 }

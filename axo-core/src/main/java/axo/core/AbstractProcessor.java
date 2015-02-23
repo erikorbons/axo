@@ -140,6 +140,7 @@ public abstract class AbstractProcessor<T, R> implements Processor<T, R> {
 		// Handle errors from the source:
 		if (sourceError != null) {
 			// Propagate the error:
+			terminate ();
 			targetSubscriber.onError (sourceError);
 			sourceSubscription = null;
 			targetSubscriber = null;
@@ -148,6 +149,7 @@ public abstract class AbstractProcessor<T, R> implements Processor<T, R> {
 		
 		// Handle cancel requests:
 		if (targetRequestedCancel) {
+			terminate ();
 			sourceSubscription.cancel ();
 			sourceSubscription = null;
 			targetSubscriber = null;
@@ -157,7 +159,7 @@ public abstract class AbstractProcessor<T, R> implements Processor<T, R> {
 		// Produce elements to the target:
 		if (targetRequested > 0) {
 			try {
-				final long n = process (sourceElements, sourceCompleted);
+				final long n = process (sourceElements, targetRequested - targetElements.size (), sourceCompleted);
 				if (n == 0 && !sourceElements.isEmpty ()) {
 					throw new IllegalStateException ("Process didn't process all input elements and didn't request more new elements (" + sourceElements.size () + " elements remain)");
 				}
@@ -183,6 +185,7 @@ public abstract class AbstractProcessor<T, R> implements Processor<T, R> {
 		
 		// Stop the processor if the source has completed:
 		if (sourceCompleted && targetElements.isEmpty () && targetRequested > 0) {
+			terminate ();
 			targetSubscriber.onComplete ();
 			targetSubscriber = null;
 			sourceSubscription = null;
@@ -193,10 +196,21 @@ public abstract class AbstractProcessor<T, R> implements Processor<T, R> {
 	 * Worker method that processes input elements.
 	 * 
 	 * @param input	The input queue to take elements from.
+	 * @param requestCount		The number of elements that have been requested on this processor.
+	 * 							This value can be used as a guideline when producing new items,
+	 * 							however the processor is permitted to produce less than or more
+	 * 							than this amount.
+	 * @param sourceExhausted	True if the source has completed: there will never be more items 
+	 * 							added to the input queue in this case. 
 	 * @return	The number of elements that must be fetched from the source
 	 * 			before more elements can be produced by this processor.
 	 */
-	public abstract long process (Queue<T> input, boolean sourceExhausted);
+	public abstract long process (Queue<T> input, long requestCount, boolean sourceExhausted);
+
+	/**
+	 * Invoked when this processor terminates.
+	 */
+	public abstract void terminate ();
 	
 	@Override
 	public void subscribe (final Subscriber<? super R> targetSubscriber) {
