@@ -110,14 +110,15 @@ public class ExecutorServiceExecutor implements StreamExecutorFactory, StreamExe
 				// Add to the total count of items that can be fetched from this
 				// subscription:
 				long current;
+				long newValue;
 				do {
 					current = count.get ();
 					if (current + n < 1) {
-						terminated.set (true);
-						subscriber.onError (new IllegalStateException ("Pending count exceeded Long.MAX_VALUE (reactive streams 3.17)"));
-						return;
+						newValue = Long.MAX_VALUE;
+					} else {
+						newValue = current + n;
 					}
-				} while (!count.compareAndSet (current, current + n));
+				} while (!count.compareAndSet (current, newValue));
 				
 				// Start producing if the produceItemsAction isn't scheduled or running:
 				if (producing.compareAndSet (false, true)) {
