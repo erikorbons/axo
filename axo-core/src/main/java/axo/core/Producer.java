@@ -6,6 +6,7 @@ import java.util.List;
 import org.reactivestreams.Publisher;
 
 import axo.core.producers.BufferProducer;
+import axo.core.producers.CountProducer;
 import axo.core.producers.FlattenProducer;
 import axo.core.producers.MappedProducer;
 import axo.core.producers.ReduceProducer;
@@ -107,7 +108,7 @@ public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
 	}
 	
 	public Producer<Long> count () {
-		return null;
+		return new CountProducer (this);
 	}
 	
 	public Producer<T> filter (final Function<T, Boolean> fn) {
