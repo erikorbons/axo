@@ -8,6 +8,7 @@ import org.reactivestreams.Publisher;
 import axo.core.producers.BufferProducer;
 import axo.core.producers.FlattenProducer;
 import axo.core.producers.MappedProducer;
+import axo.core.producers.ReduceProducer;
 import axo.core.producers.SkipProducer;
 import axo.core.producers.TakeProducer;
 
@@ -79,15 +80,30 @@ public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
 	}
 	
 	public Producer<Boolean> allMatch (final Function<? super T, Boolean> predicate) {
-		return null;
+		if (predicate == null) {
+			throw new NullPointerException ("predicate cannot be null");
+		}
+		
+		return map (predicate)
+			.reduce ((a, b) -> a && b);
 	}
 
 	public Producer<Boolean> anyMatch (final Function<? super T, Boolean> predicate) {
-		return null;
+		if (predicate == null) {
+			throw new NullPointerException ("predicate cannot be null");
+		}
+		
+		return map (predicate)
+			.reduce ((a, b) -> a || b);
 	}
 	
 	public Producer<Boolean> noneMatch (final Function<? super T, Boolean> predicate) {
-		return null;
+		if (predicate == null) {
+			throw new NullPointerException ("predicate cannot be null");
+		}
+		
+		return anyMatch (predicate)
+			.map ((v) -> !v);
 	}
 	
 	public Producer<Long> count () {
@@ -111,7 +127,7 @@ public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
 	}
 
 	public Producer<T> reduce (final Function2<? super T, ? super T, ? extends T> reducer) {
-		return null;
+		return new ReduceProducer<> (this, reducer);
 	}
 
 	public <B, R> Producer<R> zip (final Producer<B> b, final Function2<? super T, ? super B, ? extends R> zipper) {
