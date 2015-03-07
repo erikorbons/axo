@@ -13,6 +13,7 @@ import axo.core.producers.MappedProducer;
 import axo.core.producers.ReduceProducer;
 import axo.core.producers.SkipProducer;
 import axo.core.producers.TakeProducer;
+import axo.core.producers.ZippedProducer;
 
 public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
 
@@ -141,7 +142,7 @@ public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
 	}
 
 	public <B, R> Producer<R> zip (final Producer<B> b, final Function2<? super T, ? super B, ? extends R> zipper) {
-		return null;
+		return new ZippedProducer<> (this, b, zipper);
 	}
 	
 	public Producer<List<T>> buffer (final int bufferSize) {
