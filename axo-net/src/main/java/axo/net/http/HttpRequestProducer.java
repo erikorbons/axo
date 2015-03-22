@@ -1,5 +1,7 @@
 package axo.net.http;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
@@ -11,6 +13,7 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 
 import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 import axo.core.Producer;
 import axo.core.StreamContext;
@@ -20,6 +23,7 @@ public class HttpRequestProducer extends Producer<HttpRequest> {
 
 	private final StreamContext context;
 	private final HttpServerConfiguration configuration;
+	private AtomicReference<Subscriber<? super HttpRequest>> subscriber = new AtomicReference<> (null);
 	
 	public HttpRequestProducer (final HttpServerConfiguration configuration, final StreamContext context) {
 		if (configuration == null) {
@@ -40,6 +44,16 @@ public class HttpRequestProducer extends Producer<HttpRequest> {
 	
 	@Override
 	public void subscribe (final Subscriber<? super HttpRequest> subscriber) {
+		if (subscriber == null) {
+			throw new NullPointerException ("subscriber cannot be null");
+		}
+		
+		// Don't allow multi-subscribe on a HTTP request producer:
+		if (!this.subscriber.compareAndSet (null, subscriber)) {
+			subscriber.onError (new IllegalStateException ("Multi-subscribe not supported on HttpRequestProducer"));
+			return;
+		}
+		
 		final SslContext sslContext = null;
 		
 		final EventLoopGroup bossGroup = new NioEventLoopGroup (1);
@@ -56,6 +70,19 @@ public class HttpRequestProducer extends Producer<HttpRequest> {
 		
 		final ChannelFuture channelFuture = serverBootstrap
 				.bind (configuration.getPort ());
-		
+
+		subscriber.onSubscribe (new Subscription () {
+			@Override
+			public void request (final long n) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void cancel () {
+				// TODO Auto-generated method stub
+				
+			}
+		});
 	}
 }
