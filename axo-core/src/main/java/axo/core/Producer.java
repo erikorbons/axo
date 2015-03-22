@@ -142,7 +142,7 @@ public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
 	}
 
 	public <B, R> Producer<R> zip (final Producer<B> b, final Function2<? super T, ? super B, ? extends R> zipper) {
-		return new ZippedProducer<> (this, b, zipper);
+		return new ZippedProducer<> (this, b, zipper, 100);
 	}
 	
 	public Producer<List<T>> buffer (final int bufferSize) {
