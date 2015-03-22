@@ -1,23 +1,35 @@
 package axo.net.http.netty;
 
+import static io.netty.buffer.Unpooled.copiedBuffer;
+import static io.netty.buffer.Unpooled.unreleasableBuffer;
+import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.AsciiString;
+import io.netty.handler.codec.http.HttpServerUpgradeHandler;
 import io.netty.handler.codec.http2.DefaultHttp2Connection;
 import io.netty.handler.codec.http2.DefaultHttp2FrameReader;
 import io.netty.handler.codec.http2.DefaultHttp2FrameWriter;
+import io.netty.handler.codec.http2.DefaultHttp2Headers;
 import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2ConnectionEncoder;
 import io.netty.handler.codec.http2.Http2ConnectionHandler;
+import io.netty.handler.codec.http2.Http2Exception;
 import io.netty.handler.codec.http2.Http2FrameAdapter;
 import io.netty.handler.codec.http2.Http2FrameLogger;
 import io.netty.handler.codec.http2.Http2FrameReader;
 import io.netty.handler.codec.http2.Http2FrameWriter;
+import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.Http2InboundFrameLogger;
 import io.netty.handler.codec.http2.Http2OutboundFrameLogger;
+import io.netty.util.CharsetUtil;
 import io.netty.util.internal.logging.InternalLogLevel;
 
 public class Http2Handler extends Http2ConnectionHandler {
 
 	private final static Http2FrameLogger logger = new Http2FrameLogger (InternalLogLevel.INFO);
+	final static ByteBuf RESPONSE_BYTES = unreleasableBuffer(copiedBuffer("Hello World", CharsetUtil.UTF_8));	
+	private static final String UPGRADE_RESPONSE_HEADER = "Http-To-Http2-Upgrade";
 	
 	public Http2Handler () {
 		this(
@@ -42,10 +54,19 @@ public class Http2Handler extends Http2ConnectionHandler {
 	}
 	
 	@Override
-	public void userEventTriggered(ChannelHandlerContext ctx, Object evt)
+	public void userEventTriggered (final ChannelHandlerContext ctx, final Object evt)
 			throws Exception {
-		// TODO Auto-generated method stub
-		super.userEventTriggered(ctx, evt);
+		
+		 if (evt instanceof HttpServerUpgradeHandler.UpgradeEvent) {
+			// Write an HTTP/2 response to the upgrade request
+			final Http2Headers headers =
+					new DefaultHttp2Headers ().status (OK.codeAsText ())
+					.set (new AsciiString (UPGRADE_RESPONSE_HEADER), new AsciiString ("true"));
+			
+			encoder ().writeHeaders (ctx, 1, headers, 0, true, ctx.newPromise ());
+		}
+		 
+		super.userEventTriggered(ctx, evt);	
 	}
 	
 	@Override
@@ -61,5 +82,46 @@ public class Http2Handler extends Http2ConnectionHandler {
 		public void encoder (final Http2ConnectionEncoder encoder) {
 			this.encoder = encoder;
 		}
+		
+		/**
+		* If receive a frame with end-of-stream set, send a pre-canned response.
+		*/
+		@Override
+		public int onDataRead (final ChannelHandlerContext ctx, 
+				final int streamId, final ByteBuf data, final int padding,
+				final boolean endOfStream) throws Http2Exception {
+			int processed = data.readableBytes () + padding;
+			
+			if (endOfStream) {
+				sendResponse(ctx, streamId, data.retain());
+			}
+			
+			return processed;
+		}
+		
+		/**
+		* If receive a frame with end-of-stream set, send a pre-canned response.
+		*/
+		@Override
+		public void onHeadersRead (final ChannelHandlerContext ctx, final int streamId,
+				final Http2Headers headers, final int streamDependency, final short weight,
+				final boolean exclusive, final int padding, final boolean endStream) throws Http2Exception {
+			
+			if (endStream) {
+				sendResponse(ctx, streamId, RESPONSE_BYTES.duplicate());
+			}
+		}
+		
+		/**
+		* Sends a "Hello World" DATA frame to the client.
+		*/
+		private void sendResponse(final ChannelHandlerContext ctx, final int streamId, final ByteBuf payload) {
+			// Send a frame for the response status
+			final Http2Headers headers = new DefaultHttp2Headers ().status (OK.codeAsText ());
+			
+			encoder.writeHeaders (ctx, streamId, headers, 0, false, ctx.newPromise ());
+			encoder.writeData(ctx, streamId, payload, 0, true, ctx.newPromise ());
+			ctx.flush ();
+		}		
 	}
 }
