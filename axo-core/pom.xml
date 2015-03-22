@@ -6,7 +6,6 @@
 		<artifactId>axo</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<groupId>axo-core</groupId>
 	<artifactId>axo-core</artifactId>
 	
 	<dependencies>
