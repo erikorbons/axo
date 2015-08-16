@@ -3,6 +3,7 @@ package axo.core.concurrent;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -70,6 +71,12 @@ public final class ExecutorServiceScheduler implements Scheduler {
 		executorService.execute (() -> {
 			action.apply ();	
 		});
+	}
+	
+	@Override
+	public void stop (long timeout, TimeUnit unit) throws InterruptedException {
+		executorService.shutdown ();
+		executorService.awaitTermination (timeout, unit);
 	}
 
 	private abstract static class ContextBase implements SchedulerContext {
