@@ -1,0 +1,12 @@
+apply plugin: 'java'
+
+dependencies {
+	compile group: 'org.reactivestreams', name: 'reactive-streams', version: '1.+'
+	testCompile group: 'org.reactivestreams', name: 'reactive-streams-tck', version: '1.+'
+    testCompile group: 'org.testng', name: 'testng', version: '5.+'
+}
+
+test {
+	// enable TestNG support (default is JUnit)
+	useTestNG()
+}
