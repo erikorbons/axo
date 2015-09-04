@@ -47,7 +47,7 @@ public class FilterProducerTest extends PublisherVerification<Long> {
 	}
 
 	@Override
-	public Publisher<Long> createErrorStatePublisher() {
+	public Publisher<Long> createFailedPublisher() {
 		return null;
 	}
 	

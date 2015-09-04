@@ -37,7 +37,7 @@ public class MappedProducerTest extends PublisherVerification<Double> {
 	}
 
 	@Override
-	public Publisher<Double> createErrorStatePublisher () {
+	public Publisher<Double> createFailedPublisher () {
 		return null;
 	}
 

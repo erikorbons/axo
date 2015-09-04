@@ -38,7 +38,7 @@ public class BufferProducerTest extends PublisherVerification<List<Integer>> {
 	}
 	
 	@Override
-	public Publisher<List<Integer>> createErrorStatePublisher () {
+	public Publisher<List<Integer>> createFailedPublisher () {
 		return null;
 	}
 

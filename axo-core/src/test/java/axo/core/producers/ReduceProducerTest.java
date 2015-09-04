@@ -36,7 +36,7 @@ public class ReduceProducerTest extends PublisherVerification<Long> {
 	}
 	
 	@Override
-	public Publisher<Long> createErrorStatePublisher () {
+	public Publisher<Long> createFailedPublisher () {
 		return null;
 	}
 
