@@ -1,18 +1,17 @@
 package axo.core.producers;
 
+import java.util.Objects;
+
 import org.reactivestreams.Subscriber;
 
 import axo.core.Producer;
-import axo.core.StreamContext;
 
 public class ProducerWrapper<T> extends Producer<T> {
 
 	private final Producer<T> wrappedProducer;
 	
 	public ProducerWrapper (final Producer<T> wrappedProducer) {
-		if (wrappedProducer == null) {
-			throw new NullPointerException ("wrappedProducer cannot be null");
-		}
+		super (Objects.requireNonNull (wrappedProducer, "wrappedProducer cannot be null").getContext ());
 		
 		this.wrappedProducer = wrappedProducer;
 	}
@@ -20,10 +19,5 @@ public class ProducerWrapper<T> extends Producer<T> {
 	@Override
 	public void subscribe (final Subscriber<? super T> s) {
 		wrappedProducer.subscribe (s);
-	}
-
-	@Override
-	public StreamContext getContext () {
-		return wrappedProducer.getContext ();
 	}
 }

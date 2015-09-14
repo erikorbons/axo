@@ -1,5 +1,6 @@
 package axo.core;
 
+@Deprecated
 public interface StreamExecutor {
 
 	void start ();

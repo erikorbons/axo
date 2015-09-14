@@ -12,9 +12,12 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import axo.core.StreamContext;
+import axo.core.concurrent.ExecutorServiceScheduler;
+import axo.core.concurrent.Scheduler;
 import axo.core.executors.ExecutorServiceExecutor;
 
 public class ReduceProducerTest extends PublisherVerification<Long> {
+	private static Scheduler scheduler;
 	private static ExecutorServiceExecutor streamExecutor;
 	private static StreamContext streamContext;
 	
@@ -25,13 +28,15 @@ public class ReduceProducerTest extends PublisherVerification<Long> {
 	@BeforeClass
 	public static void createContext () {
 		final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor (1, 4, 1000, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable> ());
+		scheduler = new ExecutorServiceScheduler ("scheduler", threadPoolExecutor);
 		streamExecutor = new ExecutorServiceExecutor (threadPoolExecutor);
-		streamContext = new StreamContext (streamExecutor);
+		streamContext = StreamContext.create (scheduler, streamExecutor);
 	}
 	
 	@AfterClass
 	public static void deleteContext () throws Throwable {
 		streamExecutor.shutdown ();
+		scheduler.stop (1000, TimeUnit.MILLISECONDS);
 		streamContext = null;
 	}
 	

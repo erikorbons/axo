@@ -1,11 +1,12 @@
 package axo.core.producers;
 
+import java.util.Objects;
+
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import axo.core.Function;
 import axo.core.Producer;
-import axo.core.StreamContext;
 
 public class MappedProducer<T, R> extends Producer<R> {
 
@@ -13,20 +14,14 @@ public class MappedProducer<T, R> extends Producer<R> {
 	private final Function<? super T, ? extends R> mapper;
 	
 	public MappedProducer (final Producer<T> source, final Function<? super T, ? extends R> mapper) {
-		if (source == null) {
-			throw new NullPointerException ("source cannot be null");
-		}
+		super (Objects.requireNonNull (source, "source cannot be null").getContext ());
+		
 		if (mapper == null) {
 			throw new NullPointerException ("mapper cannot be null");
 		}
 		
 		this.source = source;
 		this.mapper = mapper;
-	}
-	
-	@Override
-	public StreamContext getContext () {
-		return source.getContext ();
 	}
 	
 	@Override

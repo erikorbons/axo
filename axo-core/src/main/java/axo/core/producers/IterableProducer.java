@@ -4,10 +4,11 @@ import java.util.Iterator;
 
 import org.reactivestreams.Subscriber;
 
-import axo.core.StreamExecutorFactory.ImmediateExecutor;
+import axo.core.Producer;
 import axo.core.StreamContext;
+import axo.core.StreamExecutorFactory.ImmediateExecutor;
 
-public class IterableProducer<T> extends ContextProducer<T> {
+public class IterableProducer<T> extends Producer<T> {
 	
 	private final Iterable<T> iterable;
 	

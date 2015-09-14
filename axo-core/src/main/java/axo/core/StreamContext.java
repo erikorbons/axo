@@ -1,29 +1,60 @@
 package axo.core;
 
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Objects;
+import java.util.Optional;
 
 import org.reactivestreams.Publisher;
 
+import axo.core.concurrent.Scheduler;
+import axo.core.concurrent.SchedulerContext;
+import axo.core.data.ByteString;
 import axo.core.producers.EmptyProducer;
 import axo.core.producers.IterableProducer;
 import axo.core.producers.ProducerWrapper;
 import axo.core.producers.PublisherWrapper;
 
-public class StreamContext implements ProducerFactory {
-
-	private final StreamExecutorFactory subscriptionFactory;
+public final class StreamContext implements ProducerFactory {
+	private final StreamContext parent;
+	private final SchedulerContext schedulerContext;
+	private @Deprecated final StreamExecutorFactory subscriptionFactory;
 	
-	public StreamContext (final StreamExecutorFactory subscriptionFactory) {
+	private StreamContext (final Optional<StreamContext> parent, final SchedulerContext schedulerContext, final StreamExecutorFactory subscriptionFactory) {
 		if (subscriptionFactory == null) {
 			throw new NullPointerException ("subscriptionFactory cannot be null");
 		}
-		
-		this.subscriptionFactory = subscriptionFactory;
+
+		this.parent = Objects.requireNonNull (parent, "parent cannot be null").orElse (null);
+		this.schedulerContext = Objects.requireNonNull (schedulerContext, "schedulerContext cannot be null");
+		this.subscriptionFactory = Objects.requireNonNull (subscriptionFactory, "subscriptionFactory cannot be null");
 	}
 	
+	public static StreamContext create (final Scheduler scheduler, final StreamExecutorFactory factory) {
+		return new StreamContext (Optional.empty (), scheduler, factory);
+	}
+	
+	public StreamContext createContext () {
+		return new StreamContext (Optional.of (this), schedulerContext.createContext (), subscriptionFactory);
+	}
+	
+	public StreamContext createSynschronizedContext () {
+		return new StreamContext (Optional.of (this), schedulerContext.createSynchronizedContext (), subscriptionFactory);
+	}
+	
+
+	@Deprecated
 	public StreamExecutorFactory getSubscriptionFactory () {
 		return subscriptionFactory;
+	}
+
+	public Optional<StreamContext> getParent () {
+		return Optional.ofNullable (parent);
+	}
+	
+	public SchedulerContext getScheduler () {
+		return schedulerContext;
 	}
 	
 	@Override
@@ -102,5 +133,11 @@ public class StreamContext implements ProducerFactory {
 	@Override
 	public <E> Producer<E> empty () {
 		return new EmptyProducer<E> (this);
+	}
+
+	@Override
+	public Producer<ByteString> from (final InputStream inputStream) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

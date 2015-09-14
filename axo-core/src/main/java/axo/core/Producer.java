@@ -1,10 +1,13 @@
 package axo.core;
 
+import java.io.InputStream;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 import org.reactivestreams.Publisher;
 
+import axo.core.data.ByteString;
 import axo.core.producers.BufferProducer;
 import axo.core.producers.CountProducer;
 import axo.core.producers.FilterProducer;
@@ -16,8 +19,19 @@ import axo.core.producers.TakeProducer;
 import axo.core.producers.ZippedProducer;
 
 public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
-
-	public abstract StreamContext getContext ();
+	private final StreamContext context;
+	
+	public Producer (final StreamContext context) {
+		this.context = Objects.requireNonNull (context, "context cannot be null");
+	}
+	
+	public Producer (final Producer<?> source) {
+		this (Objects.requireNonNull (source, "source cannot be null").getContext ());
+	}
+	
+	public final StreamContext getContext () {
+		return context;
+	}
 	
 	@Override
 	@SafeVarargs
@@ -48,6 +62,11 @@ public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
 	@Override
 	public final Producer<Long> range (final long min, final long max) {
 		return getContext ().range (min, max);
+	}
+	
+	@Override
+	public final Producer<ByteString> from (final InputStream inputStream) {
+		return getContext ().from (inputStream);
 	}
 	
 	public <R> Producer<R> map (final Function<? super T, ? extends R> mapper) {

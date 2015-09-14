@@ -2,13 +2,13 @@ package axo.core.producers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 
 import org.reactivestreams.Subscriber;
 
 import axo.core.AbstractProcessor;
 import axo.core.Producer;
-import axo.core.StreamContext;
 import axo.core.StreamExecutor;
 
 public class BufferProducer<T> extends Producer<List<T>> {
@@ -17,9 +17,8 @@ public class BufferProducer<T> extends Producer<List<T>> {
 	private final Producer<T> source;
 	
 	public BufferProducer (final Producer<T> source, final int bufferSize) {
-		if (source == null) {
-			throw new NullPointerException ("source cannot be null");
-		}
+		super (Objects.requireNonNull (source, "source cannot be null").getContext ());
+		
 		if (bufferSize < 1) {
 			throw new IllegalArgumentException ("bufferSize should be > 1");
 		}
@@ -40,11 +39,6 @@ public class BufferProducer<T> extends Producer<List<T>> {
 		processor.subscribe (subscriber);
 	}
 
-	@Override
-	public StreamContext getContext () {
-		return source.getContext ();
-	}
-	
 	private class BufferProcessor extends AbstractProcessor<T, List<T>> {
 		public BufferProcessor (final StreamExecutor executor) {
 			super(executor);

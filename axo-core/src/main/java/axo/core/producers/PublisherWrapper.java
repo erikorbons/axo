@@ -3,9 +3,10 @@ package axo.core.producers;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
+import axo.core.Producer;
 import axo.core.StreamContext;
 
-public class PublisherWrapper<T> extends ContextProducer<T> {
+public class PublisherWrapper<T> extends Producer<T> {
 
 	private final Publisher<T> publisher;
 	

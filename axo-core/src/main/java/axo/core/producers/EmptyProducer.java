@@ -7,15 +7,10 @@ import axo.core.Producer;
 import axo.core.StreamContext;
 
 public class EmptyProducer<T> extends Producer<T> {
-	private final StreamContext context;
-	
 	public EmptyProducer (final StreamContext context) {
-		if (context == null) {
-			throw new NullPointerException ("context cannot be null");
-		}
-		
-		this.context = context;
+		super (context);
 	}
+	
 	@Override
 	public void subscribe (final Subscriber<? super T> subscriber) {
 		if (subscriber == null) {
@@ -36,10 +31,5 @@ public class EmptyProducer<T> extends Producer<T> {
 			public void cancel () {
 			}
 		});
-	}
-
-	@Override
-	public StreamContext getContext () {
-		return context;
 	}
 }

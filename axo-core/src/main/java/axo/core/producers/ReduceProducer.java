@@ -1,5 +1,6 @@
 package axo.core.producers;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.reactivestreams.Subscriber;
@@ -7,16 +8,14 @@ import org.reactivestreams.Subscription;
 
 import axo.core.Function2;
 import axo.core.Producer;
-import axo.core.StreamContext;
 
 public class ReduceProducer<T> extends Producer<T> {
 	private final Producer<T> source;
 	private final Function2<? super T, ? super T, ? extends T> reducer;
 	
 	public ReduceProducer (final Producer<T> source, final Function2<? super T, ? super T, ? extends T> reducer) {
-		if (source == null) {
-			throw new NullPointerException ("source cannot be null");
-		}
+		super (Objects.requireNonNull (source, "source cannot be null").getContext ());
+		
 		if (reducer == null) {
 			throw new NullPointerException ("reducer cannot be null");
 		}
@@ -25,11 +24,6 @@ public class ReduceProducer<T> extends Producer<T> {
 		this.reducer = reducer;
 	}
 
-	@Override
-	public StreamContext getContext () {
-		return source.getContext ();
-	}
-	
 	@Override
 	public void subscribe (final Subscriber<? super T> subscriber) {
 		if (subscriber == null) {

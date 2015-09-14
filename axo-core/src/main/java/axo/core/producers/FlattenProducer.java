@@ -1,5 +1,6 @@
 package axo.core.producers;
 
+import java.util.Objects;
 import java.util.Queue;
 
 import org.reactivestreams.Subscriber;
@@ -7,7 +8,6 @@ import org.reactivestreams.Subscription;
 
 import axo.core.AbstractProcessor;
 import axo.core.Producer;
-import axo.core.StreamContext;
 import axo.core.StreamExecutor;
 
 public class FlattenProducer<T> extends Producer<T> {
@@ -16,9 +16,8 @@ public class FlattenProducer<T> extends Producer<T> {
 	private final long requestCount;
 	
 	public FlattenProducer (final Producer<Producer<? extends T>> source, final long requestCount) {
-		if (source == null) {
-			throw new NullPointerException ("source cannot be null");
-		}
+		super (Objects.requireNonNull (source, "source cannot be null").getContext ());
+		
 		if (requestCount <= 0) {
 			throw new IllegalArgumentException ("requestCount must be >= 1");
 		}
@@ -27,11 +26,6 @@ public class FlattenProducer<T> extends Producer<T> {
 		this.requestCount = requestCount;
 	}
 
-	@Override
-	public StreamContext getContext () {
-		return source.getContext ();
-	}
-	
 	@Override
 	public void subscribe (final Subscriber<? super T> subscriber) {
 		if (subscriber == null) {

@@ -1,20 +1,18 @@
 package axo.core.producers;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import axo.core.Producer;
-import axo.core.StreamContext;
 
 public class CountProducer extends Producer<Long> {
 	private final Producer<?> source;
 	
 	public CountProducer (final Producer<?> source) {
-		if (source == null) {
-			throw new NullPointerException ("source cannot be null");
-		}
+		super (Objects.requireNonNull (source, "source cannot be null").getContext ());
 		
 		this.source = source;
 	}
@@ -66,10 +64,5 @@ public class CountProducer extends Producer<Long> {
 				});
 			}
 		});
-	}
-
-	@Override
-	public StreamContext getContext() {
-		return source.getContext ();
 	}
 }

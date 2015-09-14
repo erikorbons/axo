@@ -1,0 +1,23 @@
+apply plugin: 'java'
+apply plugin: 'com.google.protobuf'
+
+dependencies {
+	compile project(':axo-core')
+	
+	compile 'com.google.protobuf:protobuf-java:2.6.1'
+	testCompile group: 'org.reactivestreams', name: 'reactive-streams-tck', version: '1.+'
+    testCompile group: 'org.testng', name: 'testng', version: '5.+'
+}
+
+test {
+	// enable TestNG support (default is JUnit)
+	useTestNG()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir "${buildDir}/generated/source/proto/main/java"
+        }
+	}
+}

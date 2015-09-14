@@ -4,7 +4,6 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import axo.core.Producer;
-import axo.core.StreamContext;
 
 public class TakeProducer<T> extends Producer<T> {
 
@@ -12,20 +11,14 @@ public class TakeProducer<T> extends Producer<T> {
 	private final long count;
 	
 	public TakeProducer (final Producer<T> source, final long n) {
-		if (source == null) {
-			throw new NullPointerException ("source cannot be null");
-		}
+		super (source);
+		
 		if (n < 0) {
 			throw new IllegalArgumentException ("n should be >= 0");
 		}
 		
 		this.source = source;
 		this.count = n;
-	}
-	
-	@Override
-	public StreamContext getContext () {
-		return source.getContext ();
 	}
 	
 	@Override
@@ -64,8 +57,8 @@ public class TakeProducer<T> extends Producer<T> {
 				
 				try {
 					if (processedCount >= count) {
-						subscriber.onComplete ();
 						terminated = true;
+						subscriber.onComplete ();
 					} else {
 						subscriber.onNext (t);
 						++ processedCount;

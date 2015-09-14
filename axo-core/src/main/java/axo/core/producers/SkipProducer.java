@@ -1,19 +1,19 @@
 package axo.core.producers;
 
+import java.util.Objects;
+
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import axo.core.Producer;
-import axo.core.StreamContext;
 
 public class SkipProducer<T> extends Producer<T> {
 	private final Producer<T> source;
 	private final long count;
 	
 	public SkipProducer (final Producer<T> source, final long count) {
-		if (source == null) {
-			throw new NullPointerException ("source cannot be null");
-		}
+		super (Objects.requireNonNull (source, "source cannot be null").getContext ());
+		
 		if (count < 0) {
 			throw new NullPointerException ("count should be >= 0");
 		}
@@ -22,11 +22,6 @@ public class SkipProducer<T> extends Producer<T> {
 		this.count = count;
 	}
 
-	@Override
-	public StreamContext getContext () {
-		return source.getContext ();
-	}
-	
 	@Override
 	public void subscribe (final Subscriber<? super T> subscriber) {
 		if (subscriber == null) {

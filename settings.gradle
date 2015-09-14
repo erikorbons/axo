@@ -1,1 +1,1 @@
-include "axo-core", "axo-net", "axo-test"
+include "axo-core", "axo-net", "axo-test", "axo-data", "axo-storage", "axo-geometry", "axo-features"

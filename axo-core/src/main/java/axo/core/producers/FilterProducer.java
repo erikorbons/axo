@@ -1,5 +1,6 @@
 package axo.core.producers;
 
+import java.util.Objects;
 import java.util.Queue;
 
 import org.reactivestreams.Subscriber;
@@ -7,7 +8,6 @@ import org.reactivestreams.Subscriber;
 import axo.core.AbstractProcessor;
 import axo.core.Function;
 import axo.core.Producer;
-import axo.core.StreamContext;
 import axo.core.StreamExecutor;
 
 public class FilterProducer<T> extends Producer<T> {
@@ -16,9 +16,8 @@ public class FilterProducer<T> extends Producer<T> {
 	private final long batchCount;
 	
 	public FilterProducer (final Producer<T> source, final Function<? super T, Boolean> fn, final long batchCount) {
-		if (source == null) {
-			throw new NullPointerException ("source cannot be null");
-		}
+		super (Objects.requireNonNull (source, "source cannot be null").getContext ());
+		
 		if (fn == null) {
 			throw new NullPointerException ("fn cannot be null");
 		}
@@ -31,11 +30,6 @@ public class FilterProducer<T> extends Producer<T> {
 		this.batchCount = batchCount;
 	}
 
-	@Override
-	public StreamContext getContext () {
-		return source.getContext ();
-	}
-	
 	@Override
 	public void subscribe (final Subscriber<? super T> subscriber) {
 		if (subscriber == null) {

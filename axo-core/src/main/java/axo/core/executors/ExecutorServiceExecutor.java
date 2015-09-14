@@ -14,6 +14,7 @@ import axo.core.Function2;
 import axo.core.StreamExecutor;
 import axo.core.StreamExecutorFactory;
 
+@Deprecated
 public class ExecutorServiceExecutor implements StreamExecutorFactory, StreamExecutor {
 	private final ExecutorService executorService;
 	
