@@ -1,6 +1,5 @@
 package axo.core;
 
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
@@ -35,15 +34,6 @@ public final class StreamContext implements ProducerFactory {
 		return new StreamContext (Optional.empty (), scheduler, factory);
 	}
 	
-	public StreamContext createContext () {
-		return new StreamContext (Optional.of (this), schedulerContext.createContext (), subscriptionFactory);
-	}
-	
-	public StreamContext createSynschronizedContext () {
-		return new StreamContext (Optional.of (this), schedulerContext.createSynchronizedContext (), subscriptionFactory);
-	}
-	
-
 	@Deprecated
 	public StreamExecutorFactory getSubscriptionFactory () {
 		return subscriptionFactory;
@@ -136,8 +126,10 @@ public final class StreamContext implements ProducerFactory {
 	}
 
 	@Override
-	public Producer<ByteString> from (final InputStream inputStream) {
-		// TODO Auto-generated method stub
-		return null;
+	public Producer<ByteString> from (final ByteString bs, final int blockSize) {
+		return from (
+				Objects.requireNonNull (bs, "bs cannot be null")
+					.partition (blockSize)
+			);
 	}
 }

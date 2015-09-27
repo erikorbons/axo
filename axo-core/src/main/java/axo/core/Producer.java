@@ -1,6 +1,5 @@
 package axo.core;
 
-import java.io.InputStream;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -12,6 +11,7 @@ import axo.core.producers.BufferProducer;
 import axo.core.producers.CountProducer;
 import axo.core.producers.FilterProducer;
 import axo.core.producers.FlattenProducer;
+import axo.core.producers.LiftedProducer;
 import axo.core.producers.MappedProducer;
 import axo.core.producers.ReduceProducer;
 import axo.core.producers.SkipProducer;
@@ -65,8 +65,8 @@ public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
 	}
 	
 	@Override
-	public final Producer<ByteString> from (final InputStream inputStream) {
-		return getContext ().from (inputStream);
+	public final Producer<ByteString> from (final ByteString byteString, final int blockSize) {
+		return getContext ().from (byteString, blockSize);
 	}
 	
 	public <R> Producer<R> map (final Function<? super T, ? extends R> mapper) {
@@ -166,5 +166,12 @@ public abstract class Producer<T> implements Publisher<T>, ProducerFactory {
 	
 	public Producer<List<T>> buffer (final int bufferSize) {
 		return new BufferProducer<T> (this, bufferSize);
+	}
+	
+	public <R> Producer<R> lift (final OperatorSupplier<T, R> operatorSupplier) {
+		return new LiftedProducer<> (
+				this, 
+				Objects.requireNonNull (operatorSupplier, "operatorSupplier cannot be null")
+			);
 	}
 }
