@@ -57,6 +57,8 @@ public class Http2Handler extends Http2ConnectionHandler {
 	public void userEventTriggered (final ChannelHandlerContext ctx, final Object evt)
 			throws Exception {
 		
+		System.out.println (evt);
+		
 		 if (evt instanceof HttpServerUpgradeHandler.UpgradeEvent) {
 			// Write an HTTP/2 response to the upgrade request
 			final Http2Headers headers =
@@ -72,6 +74,7 @@ public class Http2Handler extends Http2ConnectionHandler {
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
 			throws Exception {
+		System.out.println (cause);
 		// TODO Auto-generated method stub
 		super.exceptionCaught(ctx, cause);
 	}

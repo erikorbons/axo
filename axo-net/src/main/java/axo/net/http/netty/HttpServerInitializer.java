@@ -21,6 +21,7 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
 	
 	@Override
 	protected void initChannel (final SocketChannel ch) throws Exception {
+		System.out.println ("initChannel");
 		if (sslContext != null) {
 			configureSsl (ch);
 		} else {
@@ -49,6 +50,7 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
 	private static class UserEventLogger extends ChannelInboundHandlerAdapter {
 		@Override
 		public void userEventTriggered (final ChannelHandlerContext context, final Object event) {
+			System.out.println (event);
 			context.fireUserEventTriggered (event);
 		}
 	}

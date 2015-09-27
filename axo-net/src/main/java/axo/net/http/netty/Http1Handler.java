@@ -46,6 +46,7 @@ public class Http1Handler  extends SimpleChannelInboundHandler<HttpRequest> {
 	@Override
 	public void exceptionCaught (final ChannelHandlerContext ctx, final Throwable cause)
 			throws Exception {
+		cause.printStackTrace ();
 		// TODO Auto-generated method stub
 		super.exceptionCaught(ctx, cause);
 	}
