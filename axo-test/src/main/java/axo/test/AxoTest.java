@@ -14,6 +14,7 @@ import org.reactivestreams.Subscription;
 import axo.core.Action1;
 import axo.core.Producer;
 import axo.core.StreamContext;
+import axo.core.concurrent.ExecutorServiceScheduler;
 import axo.core.executors.ExecutorServiceExecutor;
 
 public final class AxoTest implements AutoCloseable {
@@ -26,7 +27,7 @@ public final class AxoTest implements AutoCloseable {
 	public AxoTest () {
 		this.threadPoolExecutor = new ThreadPoolExecutor (1, 4, 1000, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable> ());
 		this.streamExecutor = new ExecutorServiceExecutor (threadPoolExecutor);
-		this.streamContext = new StreamContext (streamExecutor);
+		this.streamContext = StreamContext.create (new ExecutorServiceScheduler ("scheduler", threadPoolExecutor), streamExecutor);
 	}
 	
 	public static void axoTest (final Action1<StreamContext> action) throws Throwable {

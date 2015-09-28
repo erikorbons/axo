@@ -1,0 +1,13 @@
+apply plugin: 'java'
+
+dependencies {
+	compile project(':axo-core')
+	compile group: 'org.reactivestreams', name: 'reactive-streams', version: '1.+'
+	compile group: 'org.reactivestreams', name: 'reactive-streams-tck', version: '1.+'
+    compile group: 'org.testng', name: 'testng', version: '5.+'
+}
+
+test {
+	// enable TestNG support (default is JUnit)
+	useTestNG()
+}
