@@ -7,16 +7,16 @@ import org.reactivestreams.Subscriber;
 import axo.core.StreamContext;
 import axo.core.data.ByteString;
 import axo.core.operators.FsmOperator;
-import axo.features.osm.model.BlobWithHeader;
+import axo.features.osm.model.FileBlock;
 import axo.features.osm.model.Osm.Blob;
 import axo.features.osm.model.Osm.BlobHeader;
 
-public class OsmFileBlockOperator extends FsmOperator<ByteString, BlobWithHeader>{
+public class OsmFileBlockOperator extends FsmOperator<ByteString, FileBlock>{
 
 	private ByteString collectedBytes = null;
 	
 	public OsmFileBlockOperator (final StreamContext context, 
-			final Subscriber<? super BlobWithHeader> subscriber) {
+			final Subscriber<? super FileBlock> subscriber) {
 		super(context, subscriber);
 	}
 
@@ -125,7 +125,7 @@ public class OsmFileBlockOperator extends FsmOperator<ByteString, BlobWithHeader
 				}
 				
 				// Produce the blob and its header:
-				produce (new BlobWithHeader (blobHeader, blob));
+				produce (new FileBlock (blobHeader, blob));
 			
 				// Switch to the default state with the remaining bytes:
 				// Parse the blob itself with the remaining bytes:
