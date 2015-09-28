@@ -23,6 +23,7 @@ public abstract class FsmOperator<T, R> extends Operator<T, R> {
 	private Stack<State<T>> states = new Stack<> ();
 	private Queue<R> producedElements = new LinkedList<> ();
 	private long requestedCount = 0;
+	private boolean elementRequested = false;
 	
 	public FsmOperator (final StreamContext context, final Subscriber<? super R> subscriber) {
 		super(context, subscriber);
@@ -55,6 +56,7 @@ public abstract class FsmOperator<T, R> extends Operator<T, R> {
 		});
 		
 		subscription.request (1);
+		elementRequested = true;
 	}
 	
 	@Override
@@ -84,6 +86,8 @@ public abstract class FsmOperator<T, R> extends Operator<T, R> {
 	}
 	
 	private void handleOnNext (final T t) {
+		elementRequested = false;
+		
 		if (terminated) {
 			return;
 		}
@@ -92,8 +96,9 @@ public abstract class FsmOperator<T, R> extends Operator<T, R> {
 			states.peek ().getInputHandler().apply (t);
 		});
 		
-		if (!terminated && !completed) {
+		if (!terminated && !completed && requestedCount > 0) {
 			subscription.request (1);
+			elementRequested = true;
 		}
 	}
 	
@@ -106,6 +111,11 @@ public abstract class FsmOperator<T, R> extends Operator<T, R> {
 			requestedCount = Long.MAX_VALUE;
 		} else {
 			requestedCount += n;
+		}
+		
+		if (!elementRequested) {
+			elementRequested = true;
+			subscription.request (1);
 		}
 		
 		scheduler.schedule (this::submitProducedElements);
