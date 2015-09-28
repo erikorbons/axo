@@ -46,4 +46,16 @@ public interface ByteString extends Serializable {
 			}
 		};
 	}
+	
+	public default ByteString concat (final ByteString byteString) {
+		if (getLength () == 0) {
+			return byteString;
+		}
+		
+		if (byteString.getLength () == 0) {
+			return this;
+		}
+		
+		return new ConcatenatedByteString (this, byteString);
+	}
 }

@@ -178,7 +178,7 @@ public abstract class FsmOperator<T, R> extends Operator<T, R> {
 		
 		wrapExceptions (() -> {
 			for (final T t: ts) {
-				state.getInputHandler ().apply (t);
+				states.peek ().getInputHandler ().apply (t);
 			}
 		});
 	}
@@ -191,17 +191,24 @@ public abstract class FsmOperator<T, R> extends Operator<T, R> {
 		
 		wrapExceptions (() -> {
 			for (final T t: ts) {
-				state.getInputHandler ().apply (t);
+				states.peek ().getInputHandler ().apply (t);
 			}
 		});
 	}
 	
-	protected final void popState () {
+	@SafeVarargs
+	protected final void popState (final T ... ts) {
 		if (states.size () <= 1) {
 			throw new IllegalStateException ("cannot pop the last state");
 		}
 		
 		states.pop ();
+		
+		wrapExceptions (() -> {
+			for (final T t: ts) {
+				states.peek ().getInputHandler ().apply (t);
+			}
+		});
 	}
 	
 	protected final void resetState () {
