@@ -96,7 +96,7 @@ public abstract class FsmOperator<T, R> extends Operator<T, R> {
 			states.peek ().getInputHandler().apply (t);
 		});
 		
-		if (!terminated && !completed && requestedCount > 0) {
+		if (!terminated && !completed && requestedCount > 0 && producedElements.isEmpty ()) {
 			subscription.request (1);
 			elementRequested = true;
 		}
