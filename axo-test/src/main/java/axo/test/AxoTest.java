@@ -1,5 +1,8 @@
 package axo.test;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -15,6 +18,7 @@ import axo.core.Action1;
 import axo.core.Producer;
 import axo.core.StreamContext;
 import axo.core.concurrent.ExecutorServiceScheduler;
+import axo.core.data.ByteString;
 import axo.core.executors.ExecutorServiceExecutor;
 
 public final class AxoTest implements AutoCloseable {
@@ -28,6 +32,33 @@ public final class AxoTest implements AutoCloseable {
 		this.threadPoolExecutor = new ThreadPoolExecutor (1, 4, 1000, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable> ());
 		this.streamExecutor = new ExecutorServiceExecutor (threadPoolExecutor);
 		this.streamContext = StreamContext.create (new ExecutorServiceScheduler ("scheduler", threadPoolExecutor), streamExecutor);
+	}
+	
+	public Producer<ByteString> resource (final String name, final int blockSize) {
+		final InputStream is = getClass ().getClassLoader ().getResourceAsStream (name);
+		if (is == null) {
+			throw new RuntimeException ("Resource not found: " + name);
+		}
+		
+		try {
+			final ByteArrayOutputStream os = new ByteArrayOutputStream ();
+			
+			int nRead;
+			final byte[] data = new byte[1024];
+			
+			while ((nRead = is.read (data, 0, data.length)) != -1) {
+				os.write (data, 0, nRead);
+			}
+			
+			os.flush ();
+			is.close ();
+			
+			final ByteString bytes = ByteString.fromByteArray (os.toByteArray ());
+			
+			return streamContext.from (bytes, blockSize);
+		} catch (IOException e) {
+			throw new RuntimeException (e);
+		}
 	}
 	
 	public static void axoTest (final Action1<StreamContext> action) throws Throwable {
