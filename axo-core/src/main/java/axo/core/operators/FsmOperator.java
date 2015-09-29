@@ -24,6 +24,7 @@ public abstract class FsmOperator<T, R> extends Operator<T, R> {
 	private Queue<R> producedElements = new LinkedList<> ();
 	private long requestedCount = 0;
 	private boolean elementRequested = false;
+	private boolean submitScheduled = false;
 	
 	public FsmOperator (final StreamContext context, final Subscriber<? super R> subscriber) {
 		super(context, subscriber);
@@ -118,7 +119,10 @@ public abstract class FsmOperator<T, R> extends Operator<T, R> {
 			subscription.request (1);
 		}
 		
-		scheduler.schedule (this::submitProducedElements);
+		if (!submitScheduled) {
+			scheduler.schedule (this::submitProducedElements);
+			submitScheduled = true;
+		}
 	}
 	
 	private void cancelSubscription () {
@@ -143,6 +147,8 @@ public abstract class FsmOperator<T, R> extends Operator<T, R> {
 	}
 	
 	private void submitProducedElements () {
+		submitScheduled = false;
+		
 		wrapExceptions (() -> {
 			while (requestedCount > 0 && !producedElements.isEmpty ()) {
 				getSubscriber ().onNext (producedElements.remove ());
@@ -161,12 +167,18 @@ public abstract class FsmOperator<T, R> extends Operator<T, R> {
 		}
 		
 		producedElements.add (Objects.requireNonNull (element, "element cannot be null"));
-		scheduler.schedule (this::submitProducedElements);
+		if (!submitScheduled) {
+			scheduler.schedule (this::submitProducedElements);
+			submitScheduled = true;
+		}
 	}
 	
 	protected final void complete () {
 		completed = true;
-		scheduler.schedule (this::submitProducedElements);
+		if (!submitScheduled) {
+			scheduler.schedule (this::submitProducedElements);
+			submitScheduled = true;
+		}
 	}
 
 	@SafeVarargs
