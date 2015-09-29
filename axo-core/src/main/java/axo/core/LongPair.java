@@ -21,4 +21,9 @@ public class LongPair<B> implements Serializable {
 	public B getB () {
 		return b;
 	}
+	
+	@Override
+	public String toString () {
+		return "Pair(" + a + ", " + b + ")";
+	}
 }

@@ -22,4 +22,9 @@ public final class OsmNode extends OsmPrimitive {
 	public double getLongitude() {
 		return longitude;
 	}
+	
+	@Override
+	public String toString () {
+		return "OsmNode(" + latitude + ", " + longitude + ")";
+	}
 }

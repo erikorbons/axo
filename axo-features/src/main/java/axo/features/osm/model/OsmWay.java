@@ -29,4 +29,9 @@ public final class OsmWay extends OsmPrimitive {
 			}
 		};
 	}
+	
+	@Override
+	public String toString () {
+		return "OsmWay(" + refs + ")";
+	}
 }

@@ -107,7 +107,7 @@ public class OsmPrimitiveOperator extends FsmOperator<PrimitiveBlock, LongPair<O
 						keys.add (keyVals.get (kvpIndex ++));
 						values.add (keyVals.get (kvpIndex));
 					}
-					if (keyVals.get (kvpIndex) == 0) {
+					if (kvpIndex < keyVals.size () && keyVals.get (kvpIndex) == 0) {
 						++ kvpIndex;
 					}
 					
@@ -213,6 +213,8 @@ public class OsmPrimitiveOperator extends FsmOperator<PrimitiveBlock, LongPair<O
 							public Map.Entry<String, String> next () {
 								final String key = strings.get (keys.get (i));
 								final String value = strings.get (values.get (i));
+								
+								++ i;
 								
 								return new Map.Entry<String, String> () {
 									@Override

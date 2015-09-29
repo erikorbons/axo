@@ -29,7 +29,7 @@ public class ByteStringRange implements ByteString {
 		final byte[] data = new byte[length];
 		
 		for (int i = 0; i < length; ++ i) {
-			data[i] = source.get (i);
+			data[i] = source.get (startIndex + i);
 		}
 		
 		return data;

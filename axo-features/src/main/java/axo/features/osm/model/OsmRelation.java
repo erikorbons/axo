@@ -54,4 +54,9 @@ public final class OsmRelation extends OsmPrimitive {
 			return ref;
 		}
 	}
+	
+	@Override
+	public String toString () {
+		return "OsmRelation(" + refs + ")";
+	}
 }

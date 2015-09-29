@@ -22,6 +22,7 @@ public class OsmFileBlockOperator extends FsmOperator<ByteString, FileBlock>{
 
 	@Override
 	public void handleInput (final ByteString input) {
+		System.out.println ("handleInput");
 		if (collectedBytes == null) {
 			collectedBytes = input;
 		} else {
@@ -38,8 +39,10 @@ public class OsmFileBlockOperator extends FsmOperator<ByteString, FileBlock>{
 			}
 
 			// Read the blob header with the remaining bytes:
+			System.out.println ("Moving to read blob header state: " + 4 + ", " + collectedBytes.getLength ());
 			if (collectedBytes.getLength () > 4) {
-				pushState (readBlobHeaderState (blobHeaderSize), collectedBytes.subString (4, collectedBytes.getLength ()));
+				final ByteString remainder = collectedBytes.subString (4, collectedBytes.getLength ());
+				pushState (readBlobHeaderState (blobHeaderSize), remainder);
 			} else {
 				pushState (readBlobHeaderState (blobHeaderSize));
 			}
@@ -85,8 +88,11 @@ public class OsmFileBlockOperator extends FsmOperator<ByteString, FileBlock>{
 				}
 				
 				// Parse the blob itself with the remaining bytes:
+				System.out.println ("Moving to read blob state: " + collectedBytes.getLength () + ", " + blobHeaderSize);
 				if (collectedBytes.getLength () > blobHeaderSize) {
-					gotoState (readBlobState (header), collectedBytes.subString (blobHeaderSize, collectedBytes.getLength ()));
+					final ByteString remainder = collectedBytes.subString (blobHeaderSize, collectedBytes.getLength ());
+					final State<ByteString> state = readBlobState (header);
+					gotoState (state, remainder);
 				} else {
 					gotoState (readBlobState (header));
 				}
@@ -106,6 +112,8 @@ public class OsmFileBlockOperator extends FsmOperator<ByteString, FileBlock>{
 		return state (
 			(input) -> {
 				collectedBytes = collectedBytes == null ? input : collectedBytes.concat (input);
+				
+				System.out.println ("readBlobState.handleInput: " + collectedBytes.getLength () + ", " + blobSize);
 				
 				if (collectedBytes.getLength () < blobSize) {
 					return;
@@ -129,9 +137,13 @@ public class OsmFileBlockOperator extends FsmOperator<ByteString, FileBlock>{
 			
 				// Switch to the default state with the remaining bytes:
 				// Parse the blob itself with the remaining bytes:
+				System.out.println ("Switching to default state: " + blobSize + ", " + collectedBytes.getLength ());
 				if (collectedBytes.getLength () > blobSize) {
-					popState (collectedBytes.subString (blobSize, collectedBytes.getLength ()));
+					final ByteString remainder = collectedBytes.subString (blobSize, collectedBytes.getLength ());
+					collectedBytes = null;
+					popState (remainder);
 				} else {
+					collectedBytes = null;
 					popState ();
 				}
 			},
