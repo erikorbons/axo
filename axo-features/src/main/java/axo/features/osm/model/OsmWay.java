@@ -32,6 +32,14 @@ public final class OsmWay extends OsmPrimitive {
 	
 	@Override
 	public String toString () {
-		return "OsmWay(" + refs + ")";
+		final StringBuilder ids = new StringBuilder ();
+		for (final long l: refs) {
+			if (ids.length () != 0) {
+				ids.append (",");
+			}
+			ids.append ("" + l);
+		}
+		
+		return "OsmWay(" + ids.toString () + ")";
 	}
 }

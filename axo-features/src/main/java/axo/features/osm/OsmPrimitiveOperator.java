@@ -140,6 +140,7 @@ public class OsmPrimitiveOperator extends FsmOperator<PrimitiveBlock, LongPair<O
 					} else {
 						ref = ref + codedRefs.get (i);
 					}
+					refs[i] = ref;
 				}
 				
 				// Emit a way:
@@ -166,6 +167,15 @@ public class OsmPrimitiveOperator extends FsmOperator<PrimitiveBlock, LongPair<O
 					} else {
 						ref = ref + codedRefs.get (i);
 					}
+					refs[i] = ref;
+				}
+				
+				// Get the roles:
+				final List<Integer> roleIds = relation.getRolesSidList ();
+				final String[] roles = new String[roleIds.size ()];
+				
+				for (int i = 0; i < roles.length; ++ i) {
+					roles[i] = strings.get (roleIds.get (i));
 				}
 				
 				// Emit a relation:
@@ -174,7 +184,8 @@ public class OsmPrimitiveOperator extends FsmOperator<PrimitiveBlock, LongPair<O
 						new OsmRelation (
 								relation.getTypesList().toArray (new MemberType[relation.getTypesList ().size ()]), 
 								refs, 
-								createKvps (strings, relation.getKeysList (), relation.getValsList ())
+								createKvps (strings, relation.getKeysList (), relation.getValsList ()),
+								roles
 							)
 					));
 			}

@@ -76,7 +76,6 @@ public abstract class FsmOperator<T, R> extends Operator<T, R> {
 	}
 
 	private void handleOnComplete () {
-		System.out.println ("handleOnComplete");
 		if (terminated) {
 			return;
 		}
@@ -87,7 +86,6 @@ public abstract class FsmOperator<T, R> extends Operator<T, R> {
 	}
 	
 	private void handleOnError (final Throwable t) {
-		System.out.println ("handleOnError");
 		getSubscriber ().onError (t);
 		terminated = true;
 	}
@@ -110,7 +108,6 @@ public abstract class FsmOperator<T, R> extends Operator<T, R> {
 	}
 	
 	private void requestElements (final long n) {
-		System.out.println ("requestElements: " + n);
 		if (terminated) {
 			return;
 		}
@@ -154,7 +151,6 @@ public abstract class FsmOperator<T, R> extends Operator<T, R> {
 	}
 	
 	private void submitProducedElements () {
-		System.out.println ("submitProducedElements");
 		submitScheduled = false;
 		
 		wrapExceptions (() -> {
@@ -175,7 +171,6 @@ public abstract class FsmOperator<T, R> extends Operator<T, R> {
 	}
 	
 	protected final void produce (final R element) {
-		System.out.println ("produce");
 		if (completed) {
 			throw new IllegalStateException ("Cannot produce elements when the in the completed state");
 		}
@@ -188,7 +183,6 @@ public abstract class FsmOperator<T, R> extends Operator<T, R> {
 	}
 	
 	protected final void complete () {
-		System.out.println ("complete");
 		completed = true;
 		if (!submitScheduled) {
 			scheduler.schedule (this::submitProducedElements);

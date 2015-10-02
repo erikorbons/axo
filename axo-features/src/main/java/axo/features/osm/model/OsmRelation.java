@@ -13,19 +13,21 @@ public final class OsmRelation extends OsmPrimitive {
 	
 	private final MemberType[] memberTypes;
 	private final long[] refs;
+	private final String[] roles;
 	
-	public OsmRelation (final MemberType[] memberTypes, final long[] refs, final Map<String, String> kvps) {
+	public OsmRelation (final MemberType[] memberTypes, final long[] refs, final Map<String, String> kvps, final String[] roles) {
 		super (kvps);
 		
 		this.memberTypes = Arrays.copyOf (memberTypes, memberTypes.length);
 		this.refs = Arrays.copyOf (refs, refs.length);
+		this.roles = Arrays.copyOf (roles, roles.length);
 	}
 
 	public List<Member> getMembers () {
 		return new AbstractList<Member> () {
 			@Override
 			public Member get (final int index) {
-				return new Member (memberTypes[index], refs[index]);
+				return new Member (memberTypes[index], refs[index], roles[index]);
 			}
 
 			@Override
@@ -40,10 +42,12 @@ public final class OsmRelation extends OsmPrimitive {
 		
 		private final MemberType memberType;
 		private final long ref;
+		private final String role;
 		
-		public Member (final MemberType memberType, final long ref) {
+		public Member (final MemberType memberType, final long ref, final String role) {
 			this.memberType = memberType;
 			this.ref = ref;
+			this.role = role;
 		}
 
 		public MemberType getMemberType () {
@@ -53,10 +57,27 @@ public final class OsmRelation extends OsmPrimitive {
 		public long getRef () {
 			return ref;
 		}
+		
+		public String getRole () {
+			return role;
+		}
 	}
 	
 	@Override
 	public String toString () {
-		return "OsmRelation(" + refs + ")";
+		final StringBuilder members = new StringBuilder ();
+		
+		for (final Member member: getMembers ()) {
+			if (members.length () > 0) {
+				members.append (",");
+			}
+			
+			members.append ("(" + member.getRef ());
+			members.append ("," + member.getMemberType ());
+			members.append ("," + member.getRole ());
+			members.append (")");
+		}
+		
+		return "OsmRelation(" + members.toString () + ")";
 	}
 }
