@@ -2,6 +2,7 @@ apply plugin: 'java'
 
 dependencies {
 	compile group: 'org.reactivestreams', name: 'reactive-streams', version: '1.+'
+	compile group: 'org.mapdb', name: 'mapdb', version: '2.0-beta8'
 	testCompile group: 'org.reactivestreams', name: 'reactive-streams-tck', version: '1.+'
     testCompile group: 'org.testng', name: 'testng', version: '5.+'
 }

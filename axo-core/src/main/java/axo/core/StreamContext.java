@@ -14,13 +14,21 @@ import axo.core.producers.EmptyProducer;
 import axo.core.producers.IterableProducer;
 import axo.core.producers.ProducerWrapper;
 import axo.core.producers.PublisherWrapper;
+import axo.core.storage.MapDbStorage;
+import axo.core.storage.Storage;
 
-public final class StreamContext implements ProducerFactory {
+public final class StreamContext implements ProducerFactory, AutoCloseable {
 	private final StreamContext parent;
 	private final SchedulerContext schedulerContext;
 	private @Deprecated final StreamExecutorFactory subscriptionFactory;
+	private final Storage storage;
 	
-	private StreamContext (final Optional<StreamContext> parent, final SchedulerContext schedulerContext, final StreamExecutorFactory subscriptionFactory) {
+	private StreamContext (
+			final Optional<StreamContext> parent, 
+			final SchedulerContext schedulerContext, 
+			final StreamExecutorFactory subscriptionFactory,
+			final Function<StreamContext, Storage> storageFactory) {
+		
 		if (subscriptionFactory == null) {
 			throw new NullPointerException ("subscriptionFactory cannot be null");
 		}
@@ -28,10 +36,33 @@ public final class StreamContext implements ProducerFactory {
 		this.parent = Objects.requireNonNull (parent, "parent cannot be null").orElse (null);
 		this.schedulerContext = Objects.requireNonNull (schedulerContext, "schedulerContext cannot be null");
 		this.subscriptionFactory = Objects.requireNonNull (subscriptionFactory, "subscriptionFactory cannot be null");
+		this.storage = Objects
+			.requireNonNull (storageFactory, "storageFactory cannot be null")
+			.apply (this);
 	}
 	
 	public static StreamContext create (final Scheduler scheduler, final StreamExecutorFactory factory) {
-		return new StreamContext (Optional.empty (), scheduler, factory);
+		return new StreamContext (
+				Optional.empty (), 
+				scheduler, 
+				factory,
+				(context) -> new MapDbStorage (context));
+	}
+	
+	public static StreamContext create (
+			final Scheduler scheduler, 
+			final StreamExecutorFactory factory,
+			final Function<StreamContext, Storage> storageFactory) {
+		return new StreamContext (
+				Optional.empty (), 
+				scheduler, 
+				factory,
+				storageFactory);
+	}
+	
+	@Override
+	public void close () throws Exception {
+		storage.close ();
 	}
 	
 	@Deprecated
@@ -45,6 +76,10 @@ public final class StreamContext implements ProducerFactory {
 	
 	public SchedulerContext getScheduler () {
 		return schedulerContext;
+	}
+	
+	public Storage getStorage () {
+		return storage;
 	}
 	
 	@Override
